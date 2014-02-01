@@ -164,40 +164,46 @@ def boxplot(vals, groupby=None, names=None, join_rm=False, order=None,
     if ax is None:
         ax = plt.gca()
 
+    # Is this a vertical plot?
+    vertical = kwargs.pop("vert", True)
+
     # Reshape and find labels for the plot
     vals, xlabel, ylabel, names = _box_reshape(vals, groupby, names, order)
-
-    # Draw the boxplot using matplotlib
-    boxes = ax.boxplot(vals, patch_artist=True, widths=widths, **kwargs)
 
     # Find plot colors
     colors, gray = _box_colors(vals, color)
 
-    # Set the new aesthetics
-    for i, box in enumerate(boxes["boxes"]):
-        box.set_color(colors[i])
-        if alpha is not None:
-            box.set_alpha(alpha)
-        box.set_edgecolor(gray)
-        box.set_linewidth(linewidth)
-    for i, whisk in enumerate(boxes["whiskers"]):
-        whisk.set_color(gray)
-        whisk.set_linewidth(linewidth)
-        whisk.set_linestyle("-")
-    for i, cap in enumerate(boxes["caps"]):
-        cap.set_color(gray)
-        cap.set_linewidth(linewidth)
-    for i, med in enumerate(boxes["medians"]):
-        med.set_color(gray)
-        med.set_linewidth(linewidth)
-    for i, fly in enumerate(boxes["fliers"]):
-        fly.set_color(gray)
-        fly.set_marker("d")
-        fly.set_markeredgecolor(gray)
-        fly.set_markersize(fliersize)
+    # box/whisker props
+    boxprops = {
+        'alpha': alpha,
+        'edgecolor': gray,
+        'linewidth': linewidth,
+        'linestyle': '-'
+    }
+    boxprops.udpate(kwargs.pop('boxprops', {}))
 
-    # Is this a vertical plot?
-    vertical = kwargs.get("vert", True)
+    medianprops = {
+        'color': gray,
+        'linewidth': linewidth,
+    }
+    medianprops.udpate(kwargs.pop('medianprops', {}))
+
+    flierprops = {
+        'marker': 'd',
+        'color': gray,
+        'markeredgecolor': gray,
+        'markersize': fliersize
+    }
+    flierprops.udpate(kwargs.pop('flierprops', {}))
+
+
+    #boxes = ax.boxplot(vals, patch_artist=True, widths=widths, **kwargs)
+
+    # Draw the boxplot using matplotlib
+    boxes = ax.boxplot(vals, notch=False, sym='b+', vert=vertical, whis=1.5,
+                widths=widths, patch_artist=True, boxprops=boxprops, labels=names,
+                flierprops=flierprops, medianprops=medianprops, meanprops=None
+                **kwargs)
 
     # Draw the joined repeated measures
     if join_rm:
